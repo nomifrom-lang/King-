@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ultra Pro Wallet</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { background: #030712; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; display: flex; justify-content: center; min-height: 100vh; }
+    .app { width: 100%; max-width: 420px; min-height: 100vh; position: relative; padding-bottom: 80px; }
+
+    /* Header */
+    .header { display: flex; justify-content: space-between; align-items: center; padding: 40px 20px 16px; }
+    .header-left p { color: #6b7280; font-size: 13px; }
+    .header-left h1 { font-size: 20px; font-weight: 700; }
+    .avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, #6366f1, #a855f7); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 16px; }
+
+    /* Card */
+    .wallet-card { margin: 0 20px; border-radius: 20px; padding: 20px; background: linear-gradient(135deg, #4f46e5, #7c3aed, #ec4899); box-shadow: 0 25px 50px rgba(0,0,0,0.5); }
+    .card-label { font-size: 10px; text-transform: uppercase; letter-spacing: 2px; opacity: .7; }
+    .card-balance { font-size: 30px; font-weight: 800; margin: 6px 0; }
+    .card-badge { background: rgba(255,255,255,.2); font-size: 11px; padding: 2px 10px; border-radius: 20px; display: inline-block; margin-bottom: 14px; }
+    .card-row { display: flex; justify-content: space-between; align-items: center; }
+    .card-number { font-family: monospace; opacity: .8; font-size: 13px; }
+    .card-name { font-size: 11px; opacity: .7; }
+
+    /* Actions */
+    .actions { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; padding: 0 20px; margin-top: 16px; }
+    .action-btn { background: #1f2937; border: none; border-radius: 16px; padding: 12px 6px; display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; color: #fff; transition: background .2s; }
+    .action-btn:hover { background: #374151; }
+    .action-btn .icon { font-size: 20px; }
+    .action-btn span { font-size: 11px; color: #d1d5db; font-weight: 500; }
+
+    /* Section */
+    .section { padding: 0 20px; margin-top: 20px; }
+    .section-title { font-size: 13px; color: #6b7280; font-weight: 600; margin-bottom: 12px; }
+
+    /* Quick Recharge */
+    .recharge-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .recharge-card { border-radius: 18px; padding: 16px 10px; display: flex; flex-direction: column; align-items: center; gap: 8px; cursor: pointer; border: 1.5px solid; transition: opacity .2s; }
+    .recharge-card:hover { opacity: .8; }
+    .recharge-card.tiktok { background: linear-gradient(135deg, #111, #222); border-color: #ec4899; }
+    .recharge-card.whatsapp { background: linear-gradient(135deg, #14532d, #166534); border-color: #22c55e; }
+    .recharge-card.youtube { background: linear-gradient(135deg, #7f1d1d, #991b1b); border-color: #ef4444; }
+    .platform-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+    .platform-icon.tiktok { background: #000; border: 1px solid #555; }
+    .platform-icon.whatsapp { background: #25D366; }
+    .platform-icon.youtube { background: #FF0000; }
+    .platform-icon svg { width: 22px; height: 22px; fill: #fff; }
+    .recharge-name { font-size: 12px; font-weight: 700; }
+    .recharge-sub { font-size: 10px; }
+    .recharge-sub.tiktok { color: #f472b6; }
+    .recharge-sub.whatsapp { color: #4ade80; }
+    .recharge-sub.youtube { color: #f87171; }
+
+    /* Quick Send */
+    .contacts-row { display: flex; gap: 16px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none; }
+    .contacts-row::-webkit-scrollbar { display: none; }
+    .contact-item { display: flex; flex-direction: column; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0; }
+    .contact-avatar { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 13px; color: #fff; }
+    .contact-avatar.c1 { background: linear-gradient(135deg, #3b82f6, #4f46e5); }
+    .contact-avatar.c2 { background: linear-gradient(135deg, #ec4899, #e11d48); }
+    .contact-avatar.c3 { background: linear-gradient(135deg, #10b981, #0d9488); }
+    .contact-avatar.c4 { background: linear-gradient(135deg, #f97316, #d97706); }
+    .contact-avatar.c5 { background: linear-gradient(135deg, #a855f7, #7c3aed); }
+    .contact-avatar.c6 { background: linear-gradient(135deg, #06b6d4, #0284c7); }
+    .contact-name { font-size: 11px; color: #9ca3af; max-width: 44px; text-align: center; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    /* Transactions */
+    .tx-list { display: flex; flex-direction: column; gap: 8px; }
+    .tx-item { background: rgba(31,41,55,.5); border-radius: 14px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; }
+    .tx-left { display: flex; align-items: center; gap: 12px; }
+    .tx-icon { width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; background: #374151; flex-shrink: 0; }
+    .tx-name { font-size: 13px; font-weight: 500; }
+    .tx-date { font-size: 11px; color: #6b7280; }
+    .tx-amount { font-size: 13px; font-weight: 600; }
+    .tx-amount.plus { color: #4ade80; }
+    .tx-amount.minus { color: #f87171; }
+
+    /* Bottom Nav */
+    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 420px; background: rgba(17,24,39,.97); border-top: 1px solid #1f2937; display: flex; justify-content: space-around; padding: 10px 8px; backdrop-filter: blur(12px); z-index: 100; }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 3px; background: none; border: none; color: #6b7280; cursor: pointer; padding: 4px 10px; border-radius: 12px; transition: color .2s; font-family: inherit; }
+    .nav-btn.active { color: #818cf8; }
+    .nav-btn .nav-icon { font-size: 18px; }
+    .nav-btn span { font-size: 10px; font-weight: 500; }
+
+    /* Tabs */
+    .tab { display: none; }
+    .tab.active { display: block; }
+
+    /* Payment Methods */
+    .payment-list { display: flex; flex-direction: column; gap: 12px; }
+    .payment-item { border-radius: 18px; padding: 16px; display: flex; align-items: center; gap: 14px; cursor: pointer; border: 1.5px solid; transition: opacity .2s; }
+    .payment-item:hover { opacity: .8; }
+    .payment-flag { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 26px; background: rgba(0,0,0,.3); flex-shrink: 0; }
+    .payment-info { flex: 1; }
+    .payment-name { font-weight: 700; font-size: 14px; }
+    .payment-detail { font-size: 11px; color: #9ca3af; margin-top: 2px; }
+    .payment-arrow { color: #6b7280; font-size: 18px; }
+
+    /* Modals */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.8); z-index: 200; display: none; align-items: flex-end; justify-content: center; }
+    .modal-overlay.open { display: flex; }
+    .modal { background: #111827; border-radius: 28px 28px 0 0; padding: 24px; padding-bottom: 40px; width: 100%; max-width: 420px; max-height: 90vh; overflow-y: auto; }
+    .modal-handle { width: 40px; height: 4px; background: #374151; border-radius: 4px; margin: 0 auto 20px; }
+    .modal-title { font-size: 17px; font-weight: 700; text-align: center; margin-bottom: 16px; }
+    .modal-input { width: 100%; background: #1f2937; border: none; border-radius: 14px; padding: 14px 16px; color: #fff; font-size: 14px; outline: none; font-family: inherit; margin-bottom: 12px; }
+    .modal-input:focus { box-shadow: 0 0 0 2px #6366f1; }
+    .modal-input::placeholder { color: #4b5563; }
+    .quick-amounts { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px; }
+    .quick-btn { background: #1f2937; border: none; border-radius: 10px; color: #fff; padding: 8px; font-size: 13px; font-weight: 500; cursor: pointer; font-family: inherit; transition: background .2s; }
+    .quick-btn:hover { background: #3730a3; }
+    .modal-submit { width: 100%; padding: 16px; border-radius: 16px; border: none; background: linear-gradient(135deg, #4f46e5, #7c3aed); color: #fff; font-size: 16px; font-weight: 700; cursor: pointer; font-family: inherit; transition: opacity .2s; }
+    .modal-submit:hover { opacity: .9; }
+    .modal-submit:disabled { background: #374151; color: #6b7280; cursor: not-allowed; opacity: 1; }
+    .contact-row { display: flex; align-items: center; gap: 12px; background: #1f2937; border-radius: 16px; padding: 12px 16px; cursor: pointer; border: none; color: #fff; width: 100%; margin-bottom: 8px; font-family: inherit; transition: background .2s; }
+    .contact-row:hover { background: #374151; }
+    .contact-row-info { text-align: left; flex: 1; }
+    .contact-row-name { font-weight: 600; font-size: 14px; }
+    .contact-row-num { font-size: 12px; color: #6b7280; }
+    .pkg-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .pkg-btn { border-radius: 16px; padding: 14px; border: 2px solid #374151; background: rgba(31,41,55,.5); cursor: pointer; text-align: left; color: #fff; font-family: inherit; transition: all .2s; }
+    .pkg-btn.selected { border-color: #6366f1; background: #1f2937; }
+    .pkg-btn:hover { background: #1f2937; }
+    .pkg-label { font-weight: 700; font-size: 12px; }
+    .pkg-price { font-size: 18px; font-weight: 800; margin-top: 4px; }
+    .pkg-badge { font-size: 10px; background: rgba(249,115,22,.15); color: #fb923c; padding: 2px 8px; border-radius: 20px; display: inline-block; margin-top: 4px; }
+    .balance-row { background: #1f2937; border-radius: 12px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .bal-label { color: #6b7280; font-size: 12px; }
+    .bal-val { font-size: 15px; font-weight: 700; }
+    .bal-val.green { color: #4ade80; }
+
+    /* Toast */
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #4f46e5; color: #fff; padding: 12px 24px; border-radius: 999px; font-size: 13px; font-weight: 500; box-shadow: 0 10px 30px rgba(0,0,0,.5); z-index: 999; display: none; white-space: nowrap; }
+    .toast.show { display: block; }
+
+    /* Back btn */
+    .back-btn { background: none; border: none; color: #9ca3af; font-size: 13px; cursor: pointer; margin-bottom: 14px; font-family: inherit; display: flex; align-items: center; gap: 4px; }
+    .contact-big { display: flex; flex-direction: column; align-items: center; margin-bottom: 20px; }
+    .contact-big .contact-avatar { width: 64px; height: 64px; font-size: 22px; }
+    .contact-big-name { font-size: 18px; font-weight: 700; margin-top: 10px; }
+    .contact-big-num { font-size: 13px; color: #9ca3af; margin-top: 2px; }
+    .big-balance { text-align: center; font-size: 22px; font-weight: 700; color: #4ade80; margin-bottom: 16px; }
+
+    /* Recharge step */
+    .platform-big { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+    .platform-name { font-size: 17px; font-weight: 700; }
+    .platform-sub { font-size: 13px; margin-top: 2px; }
+    .field-label { font-size: 13px; color: #9ca3af; margin-bottom: 6px; }
+
+    /* Payment item colors */
+    .paypal-item { background: linear-gradient(135deg, #1e3a8a, #1e40af); border-color: #3b82f6; }
+    .pak-item { background: linear-gradient(135deg, #14532d, #166534); border-color: #22c55e; }
+    .usa-item { background: linear-gradient(135deg, #1e3a8a, #1e40af); border-color: #60a5fa; }
+    .uae-item { background: linear-gradient(135deg, #78350f, #92400e); border-color: #fbbf24; }
+    .saudi-item { background: linear-gradient(135deg, #14532d, #15803d); border-color: #4ade80; }
+    .uk-item { background: linear-gradient(135deg, #312e81, #3730a3); border-color: #818cf8; }
+    .eu-item { background: linear-gradient(135deg, #1e3a8a, #1d4ed8); border-color: #93c5fd; }
+    .canada-item { background: linear-gradient(135deg, #7f1d1d, #991b1b); border-color: #f87171; }
+    .aus-item { background: linear-gradient(135deg, #78350f, #b45309); border-color: #fbbf24; }
+    .india-item { background: linear-gradient(135deg, #7c2d12, #9a3412); border-color: #fb923c; }
+    .china-item { background: linear-gradient(135deg, #7f1d1d, #991b1b); border-color: #f87171; }
+    .turkey-item { background: linear-gradient(135deg, #7f1d1d, #9f1239); border-color: #f87171; }
+
+    .cards-list { padding: 0 20px 20px; display: flex; flex-direction: column; gap: 16px; }
+    .card-item { border-radius: 20px; padding: 20px; }
+    .card-item.main { background: linear-gradient(135deg, #4f46e5, #7c3aed, #ec4899); }
+    .card-item.savings { background: linear-gradient(135deg, #10b981, #0d9488, #06b6d4); }
+
+    .history-list { padding: 0 20px; display: flex; flex-direction: column; gap: 8px; }
+
+    /* Stats */
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 20px; }
+    .stat-card { background: rgba(31,41,55,.6); border-radius: 16px; padding: 14px; }
+    .stat-label { color: #9ca3af; font-size: 11px; margin-bottom: 4px; }
+    .stat-val { font-size: 17px; font-weight: 700; }
+    .stat-val.green { color: #4ade80; }
+    .stat-val.red { color: #f87171; }
+  </style>
+</head>
+<body>
+<div class="toast" id="toast"></div>
+
+<!-- SEND MODAL -->
+<div class="modal-overlay" id="sendModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div id="sendStep1">
+      <div class="modal-title">💸 Send Money To</div>
+      <input class="modal-input" id="searchInput" placeholder="🔍 Search name or number..." oninput="filterContacts()" />
+      <div id="contactsList"></div>
+    </div>
+    <div id="sendStep2" style="display:none">
+      <button class="back-btn" onclick="showSendStep(1)">← Back</button>
+      <div class="contact-big">
+        <div class="contact-avatar" id="modalContactAvatar"></div>
+        <div class="contact-big-name" id="modalContactName"></div>
+        <div class="contact-big-num" id="modalContactNum"></div>
+      </div>
+      <div class="big-balance">$999,999,999 ✨</div>
+      <input class="modal-input" id="sendAmount" placeholder="$ Amount" type="number" />
+      <div class="quick-amounts">
+        <button class="quick-btn" onclick="setSendAmt(100)">$100</button>
+        <button class="quick-btn" onclick="setSendAmt(500)">$500</button>
+        <button class="quick-btn" onclick="setSendAmt(1000)">$1,000</button>
+        <button class="quick-btn" onclick="setSendAmt(5000)">$5,000</button>
+      </div>
+      <button class="modal-submit" onclick="doSend()">Send Money →</button>
+    </div>
+  </div>
+</div>
+
+<!-- RECEIVE MODAL -->
+<div class="modal-overlay" id="receiveModal" onclick="closeModal('receiveModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📥 Receive Money</div>
+    <div style="background:#1f2937;border-radius:14px;padding:16px;text-align:center;margin-bottom:12px;">
+      <div style="font-size:11px;color:#6b7280;margin-bottom:4px;">Account ID</div>
+      <div style="font-family:monospace;color:#818cf8;font-size:18px;">USD-9921-XPRO</div>
+    </div>
+    <div style="background:#1f2937;border-radius:14px;padding:16px;text-align:center;margin-bottom:16px;">
+      <div style="font-size:11px;color:#6b7280;margin-bottom:4px;">Account Name</div>
+      <div style="font-weight:700;">Muhammad Ali</div>
+    </div>
+    <button class="modal-submit" onclick="copyAccount()">Copy Account ID</button>
+  </div>
+</div>
+
+<!-- RECHARGE MODAL -->
+<div class="modal-overlay" id="rechargeModal" onclick="closeModal('rechargeModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="platform-big">
+      <div class="platform-icon" id="rechargePlatformIcon"></div>
+      <div>
+        <div class="platform-name" id="rechargePlatformName"></div>
+        <div class="platform-sub" id="rechargePlatformSub"></div>
+      </div>
+    </div>
+    <div class="field-label" id="rechargeUsernameLabel">Username</div>
+    <input class="modal-input" id="rechargeUsername" placeholder="@username" />
+    <div class="field-label">Select Package</div>
+    <div class="pkg-grid" id="rechargePackages"></div>
+    <div class="balance-row">
+      <div><div class="bal-label">Total</div><div class="bal-val" id="rechargeTotal">— Select a package</div></div>
+      <div style="text-align:right"><div class="bal-label">Your Balance</div><div class="bal-val green">$999,999,999</div></div>
+    </div>
+    <button class="modal-submit" id="rechargeSubmit" onclick="doRecharge()">Select a Package</button>
+  </div>
+</div>
+
+<!-- PAYMENT MODAL -->
+<div class="modal-overlay" id="paymentModal" onclick="closeModal('paymentModal')">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div class="platform-big">
+      <div style="width:56px;height:56px;border-radius:14px;background:rgba(0,0,0,.3);border:1.5px solid #4b5563;display:flex;align-items:center;justify-content:center;font-size:30px;" id="payFlag"></div>
+      <div>
+        <div class="platform-name" id="payName"></div>
+        <div class="platform-sub" style="color:#9ca3af;" id="payDetail"></div>
+      </div>
+    </div>
+    <div id="payFields"></div>
+    <div class="field-label">Amount (USD)</div>
+    <input class="modal-input" id="payAmount" placeholder="$ Amount" type="number" />
+    <div class="quick-amounts">
+      <button class="quick-btn" onclick="setPayAmt(100)">$100</button>
+      <button class="quick-btn" onclick="setPayAmt(500)">$500</button>
+      <button class="quick-btn" onclick="setPayAmt(1000)">$1,000</button>
+      <button class="quick-btn" onclick="setPayAmt(5000)">$5,000</button>
+    </div>
+    <div class="balance-row">
+      <div class="bal-label">Your Balance</div>
+      <div class="bal-val green">$999,999,999 ✨</div>
+    </div>
+    <button class="modal-submit" onclick="doPayment()">Send Payment →</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app">
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left"><p>Welcome Back 👋</p><h1>Muhammad Ali</h1></div>
+    <div class="avatar">M</div>
+  </div>
+
+  <!-- HOME TAB -->
+  <div class="tab active" id="tab-home">
+    <!-- Card -->
+    <div class="wallet-card">
+      <div class="card-label">Total Balance</div>
+      <div class="card-balance">$999,999,999</div>
+      <div class="card-badge">✨ Unlimited</div>
+      <div class="card-row">
+        <div class="card-number">**** **** **** 4521</div>
+        <div class="card-name">Main Wallet</div>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="actions" style="margin-top:16px;">
+      <button class="action-btn" onclick="openSendModal()"><div class="icon">💸</div><span>Send</span></button>
+      <button class="action-btn" onclick="openModal('receiveModal')"><div class="icon">📥</div><span>Receive</span></button>
+      <button class="action-btn" onclick="switchTab('recharge')"><div class="icon">⚡</div><span>Recharge</span></button>
+      <button class="action-btn" onclick="switchTab('payment')"><div class="icon">🏦</div><span>Payment</span></button>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-row" style="margin-top:16px;">
+      <div class="stat-card"><div class="stat-label">This Month In</div><div class="stat-val green">+ $57,000</div></div>
+      <div class="stat-card"><div class="stat-label">This Month Out</div><div class="stat-val red">- $6,200</div></div>
+    </div>
+
+    <!-- Quick Recharge -->
+    <div class="section">
+      <div class="section-title">⚡ Quick Recharge</div>
+      <div class="recharge-grid">
+        <div class="recharge-card tiktok" onclick="openRecharge('tiktok')">
+          <div class="platform-icon tiktok"><svg viewBox="0 0 24 24"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.19 8.19 0 0 0 4.79 1.52V6.74a4.85 4.85 0 0 1-1.02-.05z"/></svg></div>
+          <div class="recharge-name">TikTok</div><div class="recharge-sub tiktok">Coins</div>
+        </div>
+        <div class="recharge-card whatsapp" onclick="openRecharge('whatsapp')">
+          <div class="platform-icon whatsapp"><svg viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg></div>
+          <div class="recharge-name">WhatsApp</div><div class="recharge-sub whatsapp">Stars</div>
+        </div>
+        <div class="recharge-card youtube" onclick="openRecharge('youtube')">
+          <div class="platform-icon youtube"><svg viewBox="0 0 24 24"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></div>
+          <div class="recharge-name">YouTube</div><div class="recharge-sub youtube">Super Thanks</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Send -->
+    <div class="section">
+      <div class="section-title">👥 Quick Send</div>
+      <div class="contacts-row" id="quickSendRow"></div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="section">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <div style="font-weight:700;">Recent Transactions</div>
+        <button onclick="switchTab('history')" style="background:none;border:none;color:#818cf8;font-size:12px;cursor:pointer;">See All →</button>
+      </div>
+      <div class="tx-list" id="recentTxList"></div>
+    </div>
+  </div>
+
+  <!-- RECHARGE TAB -->
+  <div class="tab" id="tab-recharge">
+    <div style="padding:0 20px 20px;">
+      <div style="font-size:18px;font-weight:700;margin-bottom:4px;">⚡ App Recharge</div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:20px;">Send coins, stars & more</div>
+      <div style="display:flex;flex-direction:column;gap:14px;">
+        <div onclick="openRecharge('tiktok')" style="background:linear-gradient(135deg,#111,#222);border:2px solid #ec4899;border-radius:20px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;">
+          <div class="platform-icon tiktok"><svg viewBox="0 0 24 24" fill="#fff"><path d="M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.19 8.19 0 0 0 4.79 1.52V6.74a4.85 4.85 0 0 1-1.02-.05z"/></svg></div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:16px;">TikTok</div><div style="color:#f472b6;font-size:13px;">Send Coins</div><div style="color:#6b7280;font-size:11px;margin-top:2px;">6 packages available</div></div>
+          <div style="color:#6b7280;">→</div>
+        </div>
+        <div onclick="openRecharge('whatsapp')" style="background:linear-gradient(135deg,#14532d,#166534);border:2px solid #22c55e;border-radius:20px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;">
+          <div class="platform-icon whatsapp"><svg viewBox="0 0 24 24" fill="#fff"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z"/></svg></div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:16px;">WhatsApp</div><div style="color:#4ade80;font-size:13px;">Send Stars</div><div style="color:#6b7280;font-size:11px;margin-top:2px;">6 packages available</div></div>
+          <div style="color:#6b7280;">→</div>
+        </div>
+        <div onclick="openRecharge('youtube')" style="background:linear-gradient(135deg,#7f1d1d,#991b1b);border:2px solid #ef4444;border-radius:20px;padding:20px;display:flex;align-items:center;gap:16px;cursor:pointer;">
+          <div class="platform-icon youtube"><svg viewBox="0 0 24 24" fill="#fff"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></div>
+          <div style="flex:1;"><div style="font-weight:700;font-size:16px;">YouTube</div><div style="color:#f87171;font-size:13px;">Send Super Thanks</div><div style="color:#6b7280;font-size:11px;margin-top:2px;">6 packages available</div></div>
+          <div style="color:#6b7280;">→</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAYMENT TAB -->
+  <div class="tab" id="tab-payment">
+    <div style="padding:0 20px;">
+      <div style="font-size:18px;font-weight:700;margin-bottom:4px;">🏦 Payment Methods</div>
+      <div style="font-size:12px;color:#6b7280;margin-bottom:20px;">Send money to any bank worldwide</div>
+      <div class="payment-list" id="paymentList"></div>
+    </div>
+  </div>
+
+  <!-- HISTORY TAB -->
+  <div class="tab" id="tab-history">
+    <div style="padding:0 20px;">
+      <div style="font-size:18px;font-weight:700;margin-bottom:16px;">All Transactions</div>
+      <div class="tx-list" id="historyList"></div>
+    </div>
+  </div>
+
+  <!-- CARDS TAB -->
+  <div class="tab" id="tab-cards">
+    <div style="padding:0 20px;">
+      <div style="font-size:18px;font-weight:700;margin-bottom:16px;">My Cards</div>
+      <div style="display:flex;flex-direction:column;gap:16px;">
+        <div class="card-item main">
+          <div style="display:flex;justify-content:space-between;margin-bottom:16px;">
+            <div><div style="font-size:11px;opacity:.7;">Main Wallet</div><div style="font-size:24px;font-weight:800;">$999,999,999</div><div style="background:rgba(255,255,255,.2);font-size:11px;padding:2px 10px;border-radius:20px;display:inline-block;margin-top:4px;">✨ Unlimited</div></div>
+            <div style="font-size:30px;">💎</div>
+          </div>
+          <div class="card-row"><div class="card-number">**** **** **** 4521</div><div class="card-name">Valid: 12/28 &nbsp; VISA</div></div>
+        </div>
+        <div class="card-item savings">
+          <div style="display:flex;justify-content:space-between;margin-bottom:16px;">
+            <div><div style="font-size:11px;opacity:.7;">Savings</div><div style="font-size:24px;font-weight:800;">$999,999,999</div><div style="background:rgba(255,255,255,.2);font-size:11px;padding:2px 10px;border-radius:20px;display:inline-block;margin-top:4px;">✨ Unlimited</div></div>
+            <div style="font-size:30px;">💎</div>
+          </div>
+          <div class="card-row"><div class="card-number">**** **** **** 8834</div><div class="card-name">Valid: 12/28 &nbsp; VISA</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="nav-btn active" id="nav-home" onclick="switchTab('home')"><div class="nav-icon">🏠</div><span>Home</span></button>
+    <button class="nav-btn" id="nav-recharge" onclick="switchTab('recharge')"><div class="nav-icon">⚡</div><span>Recharge</span></button>
+    <button class="nav-btn" id="nav-payment" onclick="switchTab('payment')"><div class="nav-icon">🏦</div><span>Payment</span></button>
+    <button class="nav-btn" id="nav-history" onclick="switchTab('history')"><div class="nav-icon">📋</div><span>History</span></button>
+    <button class="nav-btn" id="nav-cards" onclick="switchTab('cards')"><div class="nav-icon">💳</div><span>Cards</span></button>
+  </div>
+</div>
+
+<script>
+const CONTACTS = [
+  { id:1, name:"Ali Khan", number:"+92 312-1234567", cls:"c1", initials:"AK" },
+  { id:2, name:"Sara Ahmed", number:"+92 321-9876543", cls:"c2", initials:"SA" },
+  { id:3, name:"Zain Malik", number:"+92 333-4567890", cls:"c3", initials:"ZM" },
+  { id:4, name:"Usman Bhai", number:"+92 300-1122334", cls:"c4", initials:"UB" },
+  { id:5, name:"Hina Rizvi", number:"+92 345-6677889", cls:"c5", initials:"HR" },
+  { id:6, name:"Bilal Ch", number:"+92 311-9988776", cls:"c6", initials:"BC" },
+];
+
+const PLATFORMS = {
+  tiktok: { name:"TikTok", sub:"Coins", subColor:"#f472b6", packages:[
+    {label:"100 Coins",price:1.29},{label:"500 Coins",price:6.49},{label:"1,000 Coins",price:12.99},
+    {label:"5,000 Coins",price:64.99},{label:"10,000 Coins",price:129.99},{label:"50,000 Coins 🔥",price:649.99}
+  ]},
+  whatsapp: { name:"WhatsApp", sub:"Stars", subColor:"#4ade80", packages:[
+    {label:"50 Stars",price:0.99},{label:"200 Stars",price:3.99},{label:"500 Stars",price:9.99},
+    {label:"1,000 Stars",price:19.99},{label:"5,000 Stars",price:99.99},{label:"10,000 Stars 🔥",price:199.99}
+  ]},
+  youtube: { name:"YouTube", sub:"Super Thanks", subColor:"#f87171", packages:[
+    {label:"$2 Super Thanks",price:1.99},{label:"$5 Super Thanks",price:4.99},{label:"$10 Super Thanks",price:9.99},
+    {label:"$50 Super Thanks",price:49.99},{label:"$100 Super Thanks",price:99.99},{label:"$500 Super Thanks 🔥",price:499.99}
+  ]}
+};
+
+const PAYMENT_METHODS = [
+  { flag:"🌐", name:"PayPal", detail:"Pay with PayPal balance", cls:"paypal-item", fields:["PayPal Email"] },
+  { flag:"🇵🇰", name:"Pakistan Bank", detail:"HBL · MCB · UBL · Meezan · Allied", cls:"pak-item", fields:["Account Number","IBAN"] },
+  { flag:"🇺🇸", name:"USA Bank", detail:"Chase · Bank of America · Wells Fargo", cls:"usa-item", fields:["Routing Number","Account Number"] },
+  { flag:"🇦🇪", name:"Dubai / UAE Bank", detail:"Emirates NBD · FAB · ADCB · Mashreq", cls:"uae-item", fields:["IBAN","Account Number"] },
+  { flag:"🇸🇦", name:"Saudi Arabia Bank", detail:"Al Rajhi · SNB · Riyad · SABB", cls:"saudi-item", fields:["IBAN","Account Number"] },
+  { flag:"🇬🇧", name:"UK Bank", detail:"Barclays · HSBC · Lloyds · NatWest", cls:"uk-item", fields:["Sort Code","Account Number"] },
+  { flag:"🇪🇺", name:"Europe Bank", detail:"Deutsche Bank · BNP · ING · Santander", cls:"eu-item", fields:["IBAN","BIC/SWIFT"] },
+  { flag:"🇨🇦", name:"Canada Bank", detail:"RBC · TD Bank · Scotiabank · BMO", cls:"canada-item", fields:["Transit Number","Account Number"] },
+  { flag:"🇦🇺", name:"Australia Bank", detail:"ANZ · Commonwealth · Westpac · NAB", cls:"aus-item", fields:["BSB Number","Account Number"] },
+  { flag:"🇮🇳", name:"India Bank", detail:"SBI · HDFC · ICICI · Axis · Kotak", cls:"india-item", fields:["IFSC Code","Account Number"] },
+  { flag:"🇨🇳", name:"China Bank", detail:"ICBC · Bank of China · CCB · ABC", cls:"china-item", fields:["Account Number","Bank Code"] },
+  { flag:"🇹🇷", name:"Turkey Bank", detail:"İş Bankası · Garanti · Ziraat · Yapı Kredi", cls:"turkey-item", fields:["IBAN","Account Number"] },
+];
+
+let transactions = [
+  { type:"receive", name:"Ali Khan", amount:5000, date:"Today, 2:30 PM", contactId:1, platform:null },
+  { type:"send", name:"Sara Ahmed", amount:1200, date:"Today, 11:00 AM", contactId:2, platform:null },
+  { type:"recharge", name:"TikTok — 5,000 Coins", amount:64.99, date:"Yesterday", contactId:null, platform:"tiktok" },
+  { type:"send", name:"Zain Malik", amount:3500, date:"Yesterday", contactId:3, platform:null },
+  { type:"recharge", name:"YouTube — $100 Thanks", amount:99.99, date:"20 May", contactId:null, platform:"youtube" },
+  { type:"recharge", name:"WhatsApp — 1,000 Stars", amount:19.99, date:"19 May", contactId:null, platform:"whatsapp" },
+];
+
+let selectedContact = null;
+let selectedPkg = null;
+let currentPlatform = null;
+let currentPayment = null;
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+
+function switchTab(id) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+  if (id === 'history') renderHistory();
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+function platformIconHTML(pid, size) {
+  const s = size || 32;
+  const bgs = { tiktok:'background:#000;border:1px solid #555', whatsapp:'background:#25D366', youtube:'background:#FF0000' };
+  const paths = {
+    tiktok:'M19.59 6.69a4.83 4.83 0 0 1-3.77-4.25V2h-3.45v13.67a2.89 2.89 0 0 1-2.88 2.5 2.89 2.89 0 0 1-2.89-2.89 2.89 2.89 0 0 1 2.89-2.89c.28 0 .54.04.79.1V9.01a6.33 6.33 0 0 0-.79-.05 6.34 6.34 0 0 0-6.34 6.34 6.34 6.34 0 0 0 6.34 6.34 6.34 6.34 0 0 0 6.33-6.34V8.69a8.19 8.19 0 0 0 4.79 1.52V6.74a4.85 4.85 0 0 1-1.02-.05z',
+    whatsapp:'M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z',
+    youtube:'M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z'
+  };
+  return `<div style="width:${s}px;height:${s}px;border-radius:50%;${bgs[pid]};display:flex;align-items:center;justify-content:center;flex-shrink:0;"><svg viewBox="0 0 24 24" fill="#fff" style="width:${s*0.55}px;height:${s*0.55}px;"><path d="${paths[pid]}"/></svg></div>`;
+}
+
+function txIconHTML(tx) {
+  if (tx.platform) return platformIconHTML(tx.platform, 32);
+  const c = CONTACTS.find(c => c.id === tx.contactId);
+  if (c) return `<div class="contact-avatar ${c.cls}" style="width:32px;height:32px;font-size:11px;">${c.initials}</div>`;
+  return `<div class="tx-icon">💳</div>`;
+}
+
+function renderRecentTx() {
+  const el = document.getElementById('recentTxList');
+  el.innerHTML = transactions.slice(0,4).map(tx => `
+    <div class="tx-item">
+      <div class="tx-left">${txIconHTML(tx)}<div><div class="tx-name">${tx.name}</div><div class="tx-date">${tx.date}</div></div></div>
+      <div class="tx-amount ${tx.type==='receive'?'plus':'minus'}">${tx.type==='receive'?'+':'-'}$${tx.amount.toLocaleString()}</div>
+    </div>`).join('');
+}
+
+function renderHistory() {
+  const el = document.getElementById('historyList');
+  el.innerHTML = transactions.map(tx => `
+    <div class="tx-item">
+      <div class="tx-left">${txIconHTML(tx)}<div><div class="tx-name">${tx.name}</div><div class="tx-date">${tx.date}</div></div></div>
+      <div class="tx-amount ${tx.type==='receive'?'plus':'minus'}">${tx.type==='receive'?'+':'-'}$${tx.amount.toLocaleString()}</div>
+    </div>`).join('');
+}
+
+function renderQuickSend() {
+  document.getElementById('quickSendRow').innerHTML = CONTACTS.map(c =>
+    `<div class="contact-item" onclick="openSendWithContact(${c.id})"><div class="contact-avatar ${c.cls}">${c.initials}</div><div class="contact-name">${c.name.split(' ')[0]}</div></div>`
+  ).join('');
+}
+
+function renderPaymentList() {
+  document.getElementById('paymentList').innerHTML = PAYMENT_METHODS.map((pm,i) =>
+    `<div class="payment-item ${pm.cls}" onclick="openPayment(${i})"><div class="payment-flag">${pm.flag}</div><div class="payment-info"><div class="payment-name">${pm.name}</div><div class="payment-detail">${pm.detail}</div></div><div class="payment-arrow">→</div></div>`
+  ).join('');
+}
+
+function filterContacts() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  const filtered = CONTACTS.filter(c => c.name.toLowerCase().includes(q) || c.number.includes(q));
+  document.getElementById('contactsList').innerHTML = filtered.map(c =>
+    `<button class="contact-row" onclick="selectContact(${c.id})"><div class="contact-avatar ${c.cls}">${c.initials}</div><div class="contact-row-info"><div class="contact-row-name">${c.name}</div><div class="contact-row-num">${c.number}</div></div><span style="color:#6b7280">→</span></button>`
+  ).join('');
+}
+
+function openSendModal() {
+  selectedContact = null; showSendStep(1);
+  document.getElementById('searchInput').value = '';
+  filterContacts();
+  openModal('sendModal');
+}
+
+function openSendWithContact(id) {
+  selectedContact = CONTACTS.find(c => c.id === id);
+  showSendStep(2);
+  openModal('sendModal');
+}
+
+function selectContact(id) {
+  selectedContact = CONTACTS.find(c => c.id === id);
+  showSendStep(2);
+}
+
+function showSendStep(n) {
+  document.getElementById('sendStep1').style.display = n===1?'block':'none';
+  document.getElementById('sendStep2').style.display = n===2?'block':'none';
+  if (n===2 && selectedContact) {
+    document.getElementById('modalContactAvatar').className = 'contact-avatar ' + selectedContact.cls;
+    document.getElementById('modalContactAvatar').textContent = selectedContact.initials;
+    document.getElementById('modalContactName').textContent = selectedContact.name;
+    document.getElementById('modalContactNum').textContent = selectedContact.number;
+    document.getElementById('sendAmount').value = '';
+  }
+}
+
+function setSendAmt(v) { document.getElementById('sendAmount').value = v; }
+function setPayAmt(v) { document.getElementById('payAmount').value = v; }
+
+function doSend() {
+  const amt = parseFloat(document.getElementById('sendAmount').value);
+  if (!amt || amt <= 0) return showToast('Please enter a valid amount');
+  if (!selectedContact) return showToast('Please select a contact');
+  transactions.unshift({ type:'send', name:selectedContact.name, amount:amt, date:'Just now', contactId:selectedContact.id, platform:null });
+  renderRecentTx();
+  showToast(`$${amt.toLocaleString()} sent to ${selectedContact.name} ✅`);
+  closeModal('sendModal');
+}
+
+function copyAccount() { showToast('Account ID copied! ✅'); closeModal('receiveModal'); }
+
+function openRecharge(pid) {
+  currentPlatform = pid; selectedPkg = null;
+  const p = PLATFORMS[pid];
+  document.getElementById('rechargePlatformIcon').className = 'platform-icon ' + pid;
+  document.getElementById('rechargePlatformIcon').innerHTML = platformIconHTML(pid, 44).replace(/^.*?<svg/, '<svg').replace('</div>','');
+  // Simpler: set inner HTML of icon
+  document.getElementById('rechargePlatformIcon').outerHTML; // not needed
+  document.getElementById('rechargePlatformName').textContent = p.name + ' Recharge';
+  document.getElementById('rechargePlatformSub').textContent = 'Send ' + p.sub;
+  document.getElementById('rechargePlatformSub').style.color = p.subColor;
+  document.getElementById('rechargeUsername').value = '';
+  document.getElementById('rechargeTotal').textContent = '— Select a package';
+  document.getElementById('rechargeSubmit').textContent = 'Select a Package';
+  document.getElementById('rechargeSubmit').disabled = true;
+  document.getElementById('rechargePackages').innerHTML = p.packages.map((pkg,i) =>
+    `<button class="pkg-btn" onclick="selectPkg(${i})" id="pkg${i}"><div class="pkg-label">${pkg.label.replace(' 🔥','')}</div><div class="pkg-price">$${pkg.price}</div>${pkg.label.includes('🔥')?'<div class="pkg-badge">Best Value</div>':''}</button>`
+  ).join('');
+  openModal('rechargeModal');
+}
+
+function selectPkg(i) {
+  selectedPkg = PLATFORMS[currentPlatform].packages[i];
+  document.querySelectorAll('.pkg-btn').forEach((b,j) => b.classList.toggle('selected', j===i));
+  document.getElementById('rechargeTotal').textContent = '$' + selectedPkg.price;
+  document.getElementById('rechargeSubmit').textContent = `Send ${selectedPkg.label.replace(' 🔥','')} 🚀`;
+  document.getElementById('rechargeSubmit').disabled = false;
+}
+
+function doRecharge() {
+  if (!selectedPkg) return showToast('Please select a package');
+  const user = document.getElementById('rechargeUsername').value.trim();
+  if (!user) return showToast('Please enter a username');
+  const p = PLATFORMS[currentPlatform];
+  transactions.unshift({ type:'recharge', name:`${p.name} — ${selectedPkg.label.replace(' 🔥','')}`, amount:selectedPkg.price, date:'Just now', contactId:null, platform:currentPlatform });
+  renderRecentTx();
+  showToast(`${selectedPkg.label} sent to @${user} 🎉`);
+  closeModal('rechargeModal');
+}
+
+function openPayment(i) {
+  currentPayment = PAYMENT_METHODS[i];
+  document.getElementById('payFlag').textContent = currentPayment.flag;
+  document.getElementById('payName').textContent = currentPayment.name;
+  document.getElementById('payDetail').textContent = currentPayment.detail;
+  document.getElementById('payAmount').value = '';
+  document.getElementById('payFields').innerHTML = currentPayment.fields.map(f =>
+    `<div class="field-label">${f}</div><input class="modal-input" placeholder="Enter ${f}" id="pf_${f.replace(/\s/g,'_')}" />`
+  ).join('');
+  openModal('paymentModal');
+}
+
+function doPayment() {
+  const amt = parseFloat(document.getElementById('payAmount').value);
+  if (!amt || amt <= 0) return showToast('Please enter a valid amount');
+  for (const f of currentPayment.fields) {
+    const el = document.getElementById('pf_' + f.replace(/\s/g,'_'));
+    if (!el || !el.value.trim()) return showToast(`Please fill in ${f}`);
+  }
+  transactions.unshift({ type:'send', name:`${currentPayment.flag} ${currentPayment.name}`, amount:amt, date:'Just now', contactId:null, platform:null });
+  renderRecentTx();
+  showToast(`$${amt.toLocaleString()} sent via ${currentPayment.name} ✅`);
+  closeModal('paymentModal');
+}
+
+// Set platform icons in recharge modal properly
+document.getElementById('rechargePlatformIcon').innerHTML = '';
+
+// Close modals on overlay click
+['sendModal','rechargeModal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', function(e) { if(e.target===this) closeModal(id); });
+});
+
+// Init
+renderQuickSend();
+renderPaymentList();
+renderRecentTx();
+</script>
+</body>
+</html>
